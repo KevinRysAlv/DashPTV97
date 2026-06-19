@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0a1628"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="IPTV SV"/>
+<title>IPTV Smarter SV</title>
+<style>
+  :root {
+    --bg: #0a1628;
+    --card: #0f1f3d;
+    --border: #1e3a6e;
+    --accent: #2563eb;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --subtle: #94a3b8;
+    --input-bg: #1a2f55;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; background:var(--bg); font-family:'Segoe UI',Arial,sans-serif; color:var(--text); overflow-x:hidden; }
+  button { font-family:inherit; cursor:pointer; border:none; }
+
+  /* ── SPLASH ── */
+  #splash {
+    position:fixed; inset:0; background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; z-index:9999; transition:opacity .4s;
+  }
+  #splash .ico { font-size:3.5rem; }
+  #splash h1 { color:#fff; font-size:1.5rem; font-weight:900; letter-spacing:-.5px; }
+  #splash p  { color:#60a5fa; font-size:.72rem; letter-spacing:2px; font-weight:700; }
+  #splash .bar { width:160px; height:3px; background:#1e3a6e; border-radius:99px; margin-top:20px; overflow:hidden; }
+  #splash .fill { height:100%; width:0; background:linear-gradient(90deg,#2563eb,#10b981); border-radius:99px; animation:ld 1s ease forwards .2s; }
+  @keyframes ld { to { width:100%; } }
+
+  /* ── APP SHELL ── */
+  #app { display:none; flex-direction:column; min-height:100dvh; }
+
+  /* ── HEADER ── */
+  .header {
+    background:var(--card); border-bottom:1px solid var(--border);
+    padding:12px 16px; display:flex; align-items:center; gap:10px;
+    position:sticky; top:0; z-index:50;
+  }
+  .header .logo-box {
+    width:36px; height:36px; background:linear-gradient(135deg,#003087,#2563eb);
+    border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:1.15rem; flex-shrink:0;
+  }
+  .header .brand-name { font-weight:900; font-size:.92rem; color:#fff; }
+  .header .brand-sub  { font-size:.6rem; color:#60a5fa; font-weight:700; letter-spacing:1.5px; }
+  .header .search {
+    flex:1; padding:8px 12px; background:var(--input-bg); border:1px solid var(--border);
+    border-radius:9px; color:var(--text); font-size:.85rem; outline:none; min-width:0;
+  }
+  .header .search::placeholder { color:var(--muted); }
+
+  /* ── STATS ── */
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 14px; }
+  .stat-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:11px 13px;
+  }
+  .stat-card .sl { font-size:.62rem; color:var(--muted); font-weight:700; letter-spacing:1px; margin-bottom:3px; }
+  .stat-card .sv { font-size:1.7rem; font-weight:900; }
+
+  /* ── TABS ── */
+  .tabs {
+    display:flex; background:var(--card); border-bottom:1px solid var(--border);
+    overflow-x:auto; scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab-btn {
+    flex:1; padding:10px 6px; background:transparent; color:var(--muted);
+    font-size:.75rem; font-weight:600; border-bottom:2px solid transparent;
+    white-space:nowrap; display:flex; flex-direction:column; align-items:center; gap:2px;
+    transition:all .15s; min-width:80px;
+  }
+  .tab-btn .ti { font-size:1rem; }
+  .tab-btn.active { color:#fff; border-bottom-color:var(--accent); }
+  .tab-badge {
+    background:var(--red); color:#fff; border-radius:99px;
+    padding:0 5px; font-size:.6rem; font-weight:800; line-height:1.5;
+  }
+
+  /* ── USER LIST ── */
+  .user-list { padding:10px 14px 90px; }
+  .empty { text-align:center; padding:48px 20px; color:var(--muted); }
+  .empty .ei { font-size:2.5rem; margin-bottom:10px; }
+
+  /* ── USER CARD ── */
+  .ucard {
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:13px 14px; margin-bottom:10px; animation:fadeIn .2s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .ucard-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .ucard-id { display:flex; align-items:center; gap:9px; }
+  .ucard-avatar {
+    width:38px; height:38px; background:linear-gradient(135deg,#003087,#2563eb);
+    border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;
+  }
+  .ucard-name { font-weight:800; font-size:.93rem; color:var(--text); }
+  .ucard-uid  { font-size:.68rem; color:var(--muted); margin-top:1px; }
+  .ucard-right { display:flex; align-items:center; gap:7px; }
+  .badge { border-radius:99px; padding:3px 9px; font-size:.7rem; font-weight:800; }
+  .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  .ucard-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:11px; }
+  .ucard-field { background:#0a1628; border-radius:8px; padding:7px 10px; }
+  .ucard-field .fl { font-size:.62rem; color:var(--muted); margin-bottom:2px; }
+  .ucard-field .fv { font-size:.82rem; font-weight:700; color:var(--text); }
+
+  .ucard-actions { display:grid; grid-template-columns:1fr 1fr 1fr 44px 44px; gap:5px; }
+  .act-btn {
+    padding:9px 4px; border-radius:9px; font-size:.72rem; font-weight:700;
+    color:#fff; display:flex; align-items:center; justify-content:center; gap:4px;
+  }
+
+  /* ── PAID BANNER ── */
+  .paid-banner {
+    background:linear-gradient(135deg,#052e16,#14532d);
+    border:1.5px solid #16a34a; border-radius:10px;
+    padding:10px 12px; margin-bottom:11px;
+    display:flex; align-items:center; gap:10px; font-size:.78rem;
+  }
+  .paid-banner .pb-icon { font-size:1.3rem; flex-shrink:0; }
+  .paid-banner .pb-label { color:#4ade80; font-weight:700; font-size:.68rem; letter-spacing:1px; }
+  .paid-banner .pb-date  { color:#86efac; font-weight:600; margin-top:1px; }
+
+  /* ── RENEWAL PREVIEW ── */
+  .renew-logic {
+    background:#0a1628; border:1px solid var(--border); border-radius:10px;
+    padding:12px 13px; margin-bottom:14px; font-size:.8rem;
+  }
+  .renew-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); }
+  .renew-row:last-child { border-bottom:none; padding-bottom:0; }
+  .renew-lbl { color:var(--muted); }
+  .renew-val { font-weight:700; color:var(--text); }
+  .renew-val.green { color:#34d399; font-size:.95rem; }
+  .renew-val.red   { color:#f87171; }
+  .renew-val.yellow{ color:#fbbf24; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position:fixed; bottom:0; left:0; right:0;
+    background:var(--card); border-top:1px solid var(--border);
+    display:flex; align-items:center; padding:6px 10px 10px;
+    gap:6px; z-index:50; padding-bottom:max(10px, env(safe-area-inset-bottom));
+  }
+  .nav-btn {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:6px 4px; background:transparent; border-radius:10px;
+    color:var(--muted); font-size:.6rem; font-weight:600; transition:all .15s;
+  }
+  .nav-btn .ni { font-size:1.2rem; }
+  .nav-btn.active { color:#60a5fa; background:rgba(37,99,235,.15); }
+  .fab {
+    width:48px; height:48px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,#065f46,#10b981);
+    font-size:1.6rem; color:#fff; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 16px rgba(16,185,129,.45);
+  }
+
+  /* ── MODAL OVERLAY ── */
+  .overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:100;
+    display:flex; align-items:flex-end; justify-content:center;
+    animation:fadeIn .15s ease;
+  }
+  .sheet {
+    background:var(--card); border-radius:20px 20px 0 0;
+    width:100%; max-width:520px; max-height:92dvh;
+    display:flex; flex-direction:column; overflow:hidden;
+    animation:slideUp .25s ease;
+  }
+  @keyframes slideUp { from { transform:translateY(40px); opacity:0; } to { transform:none; opacity:1; } }
+  .sheet-handle { width:40px; height:4px; background:var(--border); border-radius:99px; margin:11px auto 0; flex-shrink:0; }
+  .sheet-header {
+    padding:12px 18px 11px; border-bottom:1px solid var(--border);
+    display:flex; justify-content:space-between; align-items:center; flex-shrink:0;
+  }
+  .sheet-title-sub { font-size:.68rem; font-weight:700; color:var(--accent); letter-spacing:1.5px; }
+  .sheet-title     { font-size:1rem; font-weight:800; color:#fff; margin-top:2px; }
+  .close-btn {
+    width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.1);
+    color:var(--text); font-size:1rem; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .sheet-body { overflow-y:auto; padding:16px 18px 24px; flex:1; }
+
+  /* ── FORM ── */
+  .field-label { display:block; font-size:.68rem; font-weight:700; color:var(--subtle); letter-spacing:1px; margin-bottom:5px; }
+  .field-input, .field-select {
+    width:100%; padding:11px 13px; background:var(--input-bg); border:1.5px solid var(--border);
+    border-radius:9px; color:var(--text); font-size:.92rem; outline:none; margin-bottom:13px;
+    font-family:inherit; appearance:none; -webkit-appearance:none;
+  }
+  .field-input:focus, .field-select:focus { border-color:var(--accent); }
+  .field-input::placeholder { color:var(--muted); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  /* ── PREVIEW BOX ── */
+  .preview {
+    background:#0a1628; border:1px solid var(--border); border-radius:12px;
+    padding:14px; margin-bottom:16px; display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  }
+  .preview .pl { font-size:.65rem; color:var(--muted); margin-bottom:2px; }
+  .preview .pv { font-weight:800; font-size:.88rem; color:var(--text); }
+  .preview .pv.big { font-size:1.15rem; color:#34d399; }
+  .preview .pv.red { color:#f87171; }
+
+  /* ── PRIMARY BUTTON ── */
+  .btn-primary {
+    width:100%; padding:13px; border-radius:12px; font-weight:800;
+    font-size:.95rem; color:#fff; margin-bottom:9px; transition:opacity .15s;
+  }
+  .btn-primary:active { opacity:.8; }
+  .btn-secondary {
+    width:100%; padding:11px; border-radius:12px; font-weight:700;
+    font-size:.88rem; background:var(--input-bg); color:var(--subtle);
+  }
+
+  /* ── DISCOUNT TAG ── */
+  .disc-tag {
+    display:inline-flex; align-items:center; gap:4px;
+    background:linear-gradient(135deg,#7f1d1d,#dc2626);
+    color:#fff; border-radius:99px; padding:2px 8px;
+    font-size:.62rem; font-weight:800; letter-spacing:.5px;
+  }
+  .promo-banner {
+    background:linear-gradient(135deg,#1c1917,#44403c);
+    border:1.5px solid #f59e0b; border-radius:10px;
+    padding:9px 12px; margin-bottom:10px;
+    display:flex; align-items:center; gap:10px; font-size:.78rem;
+  }
+  .promo-banner .pb-icon { font-size:1.2rem; flex-shrink:0; }
+  .promo-banner .pb-label { color:#fbbf24; font-weight:700; font-size:.68rem; letter-spacing:1px; }
+  .promo-banner .pb-date  { color:#fde68a; font-weight:600; margin-top:1px; }
+
+  /* ── BACKUP BAR ── */
+  .backup-bar {
+    background:var(--card); border-top:1px solid var(--border);
+    padding:8px 14px; display:flex; gap:8px; align-items:center;
+  }
+  .backup-bar span { font-size:.68rem; color:var(--muted); flex:1; }
+  .bk-btn {
+    padding:6px 12px; border-radius:8px; font-size:.72rem; font-weight:700;
+    background:var(--input-bg); color:var(--subtle); border:1px solid var(--border);
+  }
+
+  /* ── DELETE CONFIRM ── */
+  .delete-center { text-align:center; padding:16px 0 20px; }
+  .delete-icon { font-size:2.8rem; margin-bottom:12px; }
+  .delete-msg { color:var(--subtle); font-size:.88rem; line-height:1.6; }
+
+  /* ── TOAST ── */
+  #toast {
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:#1e3a6e; color:#fff; padding:10px 20px; border-radius:99px;
+    font-size:.82rem; font-weight:700; opacity:0; transition:all .25s; z-index:200; white-space:nowrap;
+    pointer-events:none;
+  }
+  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="ico">📺</div>
+  <h1>IPTV SMARTER SV</h1>
+  <p>PANEL DE GESTIÓN</p>
+  <div class="bar"><div class="fill"></div></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-box">📺</div>
+    <div style="flex:0 0 auto">
+      <div class="brand-name">IPTV SMARTER SV</div>
+      <div class="brand-sub">PANEL DE GESTIÓN</div>
+    </div>
+    <input class="search" id="searchInput" placeholder="🔍 Buscar usuario…" oninput="renderList()"/>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats" id="statsRow"></div>
+
+  <!-- TABS -->
+  <div class="tabs" id="tabsRow"></div>
+
+  <!-- LIST -->
+  <div class="user-list" id="userList"></div>
+
+  <!-- BACKUP BAR -->
+  <div class="backup-bar">
+    <span id="backupStatus">💾 Datos guardados en tu celular</span>
+    <button class="bk-btn" onclick="exportData()">⬆️ Exportar</button>
+    <button class="bk-btn" onclick="document.getElementById('importFile').click()">⬇️ Importar</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"/>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav" id="bottomNav"></div>
+
+</div>
+
+<!-- MODAL CONTAINER -->
+<div id="modalContainer"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const fmt = d => { if(!d) return '—'; const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
+const today = () => new Date().toISOString().split('T')[0];
+
+function addMonths(dateStr, n) {
+  if(!dateStr) return '';
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setMonth(d.getMonth() + n);
+  return d.toISOString().split('T')[0];
+}
+
+function daysLeft(exp) {
+  if(!exp) return 999;
+  return Math.ceil((new Date(exp+'T12:00:00') - new Date()) / 86400000);
+}
+
+function getBadge(days) {
+  if(days < 0)  return { label:'Vencido', bg:'#fee2e2', fg:'#dc2626' };
+  if(days <= 7) return { label:`${days}d`, bg:'#fef3c7', fg:'#d97706' };
+  return               { label:`${days}d`, bg:'#d1fae5', fg:'#059669' };
+}
+
+function uid() { return Date.now(); }
+
+function invNum() {
+  const n=new Date(), p=(x,l=2)=>String(x).padStart(l,'0');
+  return `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(Math.floor(Math.random()*9000)+1000,4)}`;
+}
+
+function toast(msg) {
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ═══════════════════════════════════════════════════════
+//  STORAGE
+// ═══════════════════════════════════════════════════════
+const SEED = [
+  {id:190967,username:'AnaPena0626',  expiration:'2026-07-12',connections:2,online:true },
+  {id:190004,username:'JoseD0626',    expiration:'2026-07-09',connections:3,online:true },
+  {id:189665,username:'Carlos0626',   expiration:'2026-10-08',connections:3,online:true },
+  {id:189083,username:'Gerson26',     expiration:'2026-07-04',connections:2,online:true },
+  {id:176423,username:'Antpac26',     expiration:'2026-06-22',connections:3,online:false},
+  {id:168796,username:'Wilren25',     expiration:'2026-07-01',connections:3,online:true },
+  {id:164197,username:'AriasBro25',   expiration:'2026-07-06',connections:3,online:true },
+  {id:155001,username:'Edwtob25',     expiration:'2026-06-20',connections:3,online:true },
+  {id:144289,username:'Ramven25',     expiration:'2026-06-29',connections:3,online:true },
+  {id:144230,username:'Kevinrys97',   expiration:'2026-07-11',connections:3,online:false},
+  {id:17684, username:'Leonay-21',    expiration:'2026-07-29',connections:3,online:true },
+];
+
+function loadUsers() {
+  try {
+    const raw = localStorage.getItem('iptv_users');
+    return raw ? JSON.parse(raw) : [...SEED];
+  } catch(e) { return [...SEED]; }
+}
+
+function saveUsers(arr) {
+  localStorage.setItem('iptv_users', JSON.stringify(arr));
+}
+
+let users = loadUsers();
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let activeTab = 'all'; // all | expiring | expired
+
+function getExpiring() { return users.filter(u=>{ const d=daysLeft(u.expiration); return d>=0&&d<=7; }); }
+function getExpired()  { return users.filter(u=>daysLeft(u.expiration)<0); }
+function getOnline()   { return users.filter(u=>u.online); }
+
+function getFiltered() {
+  const q = ($('searchInput')||{value:''}).value.toLowerCase();
+  let list = activeTab==='expiring' ? getExpiring()
+           : activeTab==='expired'  ? getExpired()
+           : [...users];
+  if(q) list = list.filter(u=>u.username.toLowerCase().includes(q)||String(u.id).includes(q));
+  return list;
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER STATS
+// ═══════════════════════════════════════════════════════
+function renderStats() {
+  const items = [
+    {label:'TOTAL',      val:users.length,         col:'#60a5fa', icon:'👥'},
+    {label:'ONLINE',     val:getOnline().length,    col:'#34d399', icon:'🟢'},
+    {label:'POR VENCER', val:getExpiring().length,  col:'#fbbf24', icon:'⚠️'},
+    {label:'VENCIDOS',   val:getExpired().length,   col:'#f87171', icon:'❌'},
+  ];
+  $('statsRow').innerHTML = items.map(s=>`
+    <div class="stat-card">
+      <div class="sl">${s.icon} ${s.label}</div>
+      <div class="sv" style="color:${s.col}">${s.val}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER TABS + BOTTOM NAV
+// ═══════════════════════════════════════════════════════
+const TABS = [
+  {id:'all',      icon:'👥', label:'Todos'   },
+  {id:'expiring', icon:'⏰', label:'Por vencer'},
+  {id:'expired',  icon:'🔴', label:'Vencidos' },
+];
+
+function renderTabs() {
+  $('tabsRow').innerHTML = TABS.map(t=>{
+    const count = t.id==='expiring' ? getExpiring().length : t.id==='expired' ? getExpired().length : 0;
+    return `<button class="tab-btn ${activeTab===t.id?'active':''}" onclick="setTab('${t.id}')">
+      <span class="ti">${t.icon}</span>
+      <span>${t.label}</span>
+      ${count>0?`<span class="tab-badge">${count}</span>`:''}
+    </button>`;
+  }).join('');
+
+  $('bottomNav').innerHTML = TABS.map(t=>{
+    const count = t.id==='expiring' ? getExpiring().length : t.id==='expired' ? getExpired().length : 0;
+    return `<button class="nav-btn ${activeTab===t.id?'active':''}" onclick="setTab('${t.id}')">
+      <span class="ni">${t.icon}</span>
+      <span>${t.label}</span>
+      ${count>0?`<span class="tab-badge">${count}</span>`:''}
+    </button>`;
+  }).join('') + `<button class="fab" onclick="openAdd()">+</button>`;
+}
+
+function setTab(id) { activeTab=id; renderAll(); }
+
+// ═══════════════════════════════════════════════════════
+//  RENDER USER LIST
+// ═══════════════════════════════════════════════════════
+function renderList() {
+  const list = getFiltered();
+  if(!list.length) {
+    $('userList').innerHTML = `<div class="empty"><div class="ei">🔍</div><div>Sin resultados</div></div>`;
+    return;
+  }
+  $('userList').innerHTML = list.map(u=>{
+    const days = daysLeft(u.expiration);
+    const b    = getBadge(days);
+    return `
+    <div class="ucard">
+      <div class="ucard-top">
+        <div class="ucard-id">
+          <div class="ucard-avatar">📺</div>
+          <div>
+            <div class="ucard-name">${esc(u.username)}</div>
+            <div class="ucard-uid">ID: ${u.id}</div>
+          </div>
+        </div>
+        <div class="ucard-right">
+          <span class="badge" style="background:${b.bg};color:${b.fg}">${b.label}</span>
+          <span class="dot" style="background:${u.online?'#10b981':'#475569'}"></span>
+        </div>
+      </div>
+      <div class="ucard-grid">
+        <div class="ucard-field"><div class="fl">Vence</div><div class="fv">${fmt(u.expiration)}</div></div>
+        <div class="ucard-field"><div class="fl">Conexiones</div><div class="fv">${u.connections}</div></div>
+        <div class="ucard-field"><div class="fl">Estado</div><div class="fv">${u.online?'🟢 Online':'⚫ Offline'}</div></div>
+        <div class="ucard-field"><div class="fl">Días restantes</div><div class="fv" style="color:${b.fg}">${days<0?'Vencido':days+' días'}</div></div>
+      </div>
+      ${u.lastPaid ? `
+      <div class="paid-banner">
+        <div class="pb-icon">💰</div>
+        <div>
+          <div class="pb-label">ÚLTIMO PAGO REGISTRADO</div>
+          <div class="pb-date">Confirmado el ${fmt(u.lastPaid)} · Renovado hasta ${fmt(u.expiration)}</div>
+        </div>
+      </div>` : ''}
+      ${u.promo ? `
+      <div class="promo-banner">
+        <div class="pb-icon">🏷️</div>
+        <div>
+          <div class="pb-label">PROMOCIÓN ACTIVA</div>
+          <div class="pb-date">${esc(u.promo.label)} · ${u.promo.type==='pct'?u.promo.value+'% off':'$'+parseFloat(u.promo.value).toFixed(2)+' desc.'}</div>
+        </div>
+      </div>` : ''}
+      <div class="ucard-actions">
+        <button class="act-btn" style="background:linear-gradient(135deg,#003087,#2563eb)" onclick="openReceipt(${u.id})">🧾 Factura</button>
+        <button class="act-btn" style="background:linear-gradient(135deg,#4a1d96,#7c3aed)" onclick="openPay(${u.id})">💰 Pagó</button>
+        <button class="act-btn" style="background:linear-gradient(135deg,#065f46,#10b981)" onclick="openProof(${u.id})">✅ Comprobante</button>
+        <button class="act-btn" style="background:linear-gradient(135deg,#92400e,#f59e0b);color:#111" onclick="openPromo(${u.id})" title="Promoción/Descuento">🏷️</button>
+        <button class="act-btn" style="background:linear-gradient(135deg,#1a2f55,#2d4f8a);color:#94a3b8" onclick="openEdit(${u.id})" title="Editar">✏️</button>
+      </div>
+      <div style="margin-top:6px">
+        <button class="act-btn" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);color:#fca5a5;width:100%;border-radius:9px;padding:7px" onclick="openDelete(${u.id})">🗑️ Eliminar usuario</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderStats();
+  renderTabs();
+  renderList();
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL HELPERS
+// ═══════════════════════════════════════════════════════
+function openModal(html) {
+  $('modalContainer').innerHTML = `
+    <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+      <div class="sheet">${html}</div>
+    </div>`;
+}
+function closeModal() {
+  $('modalContainer').innerHTML='';
+}
+function handleOverlayClick(e) {
+  if(e.target.id==='overlay') closeModal();
+}
+function sheetTop(subtitle, title) {
+  return `<div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <div class="sheet-title-sub">${subtitle}</div>
+        <div class="sheet-title">${esc(title)}</div>
+      </div>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="sheet-body">`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADD USER
+// ═══════════════════════════════════════════════════════
+function openAdd() {
+  openModal(sheetTop('AGREGAR USUARIO','Nuevo usuario') + `
+    <label class="field-label">USERNAME</label>
+    <input class="field-input" id="f_user" placeholder="AnaPena0626"/>
+    <label class="field-label">FECHA DE VENCIMIENTO</label>
+    <input class="field-input" id="f_exp" type="date"/>
+    <label class="field-label">CONEXIONES</label>
+    <select class="field-select" id="f_conn">
+      ${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===3?'selected':''}>${n} conexión${n>1?'es':''}</option>`).join('')}
+    </select>
+    <label class="field-label">ESTADO</label>
+    <select class="field-select" id="f_online">
+      <option value="1">🟢 Online</option>
+      <option value="0">⚫ Offline</option>
+    </select>
+    <button class="btn-primary" style="background:linear-gradient(135deg,#065f46,#10b981)" onclick="saveAdd()">✅ Crear usuario</button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  </div>`);
+}
+
+function saveAdd() {
+  const username = $('f_user').value.trim();
+  const expiration = $('f_exp').value;
+  const connections = parseInt($('f_conn').value);
+  const online = $('f_online').value==='1';
+  if(!username||!expiration){ toast('⚠️ Completa todos los campos'); return; }
+  users.unshift({ id:uid(), username, expiration, connections, online });
+  saveUsers(users);
+  closeModal();
+  renderAll();
+  toast('✅ Usuario creado');
+}
+
+// ═══════════════════════════════════════════════════════
+//  EDIT USER
+// ═══════════════════════════════════════════════════════
+function openEdit(id) {
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  openModal(sheetTop('EDITAR USUARIO', u.username) + `
+    <label class="field-label">USERNAME</label>
+    <input class="field-input" id="e_user" value="${esc(u.username)}"/>
+    <label class="field-label">FECHA DE VENCIMIENTO</label>
+    <input class="field-input" id="e_exp" type="date" value="${u.expiration||''}"/>
+    <label class="field-label">CONEXIONES</label>
+    <select class="field-select" id="e_conn">
+      ${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===u.connections?'selected':''}>${n} conexión${n>1?'es':''}</option>`).join('')}
+    </select>
+    <label class="field-label">ESTADO</label>
+    <select class="field-select" id="e_online">
+      <option value="1" ${u.online?'selected':''}>🟢 Online</option>
+      <option value="0" ${!u.online?'selected':''}>⚫ Offline</option>
+    </select>
+    <button class="btn-primary" style="background:linear-gradient(135deg,#003087,#2563eb)" onclick="saveEdit(${id})">💾 Guardar cambios</button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  </div>`);
+}
+
+function saveEdit(id) {
+  const idx = users.findIndex(x=>x.id===id);
+  if(idx===-1) return;
+  const username = $('e_user').value.trim();
+  const expiration = $('e_exp').value;
+  if(!username||!expiration){ toast('⚠️ Completa todos los campos'); return; }
+  users[idx] = { ...users[idx], username, expiration,
+    connections:parseInt($('e_conn').value), online:$('e_online').value==='1' };
+  saveUsers(users);
+  closeModal();
+  renderAll();
+  toast('💾 Cambios guardados');
+}
+
+// ═══════════════════════════════════════════════════════
+//  DELETE USER
+// ═══════════════════════════════════════════════════════
+function openDelete(id) {
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  openModal(sheetTop('ELIMINAR USUARIO', u.username) + `
+    <div class="delete-center">
+      <div class="delete-icon">🗑️</div>
+      <p class="delete-msg">¿Seguro que quieres eliminar a <strong style="color:#fff">${esc(u.username)}</strong>?<br>Esta acción no se puede deshacer.</p>
+    </div>
+    <button class="btn-primary" style="background:linear-gradient(135deg,#7f1d1d,#dc2626)" onclick="confirmDelete(${id})">Sí, eliminar</button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  </div>`);
+}
+
+function confirmDelete(id) {
+  users = users.filter(x=>x.id!==id);
+  saveUsers(users);
+  closeModal();
+  renderAll();
+  toast('🗑️ Usuario eliminado');
+}
+
+// ═══════════════════════════════════════════════════════
+//  REGISTRAR PAGO — renueva fecha automáticamente
+// ═══════════════════════════════════════════════════════
+function openPay(id) {
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+
+  openModal(sheetTop('REGISTRAR PAGO', u.username) + `
+    <label class="field-label">FECHA EN QUE CONFIRMASTE EL PAGO</label>
+    <input class="field-input" id="p_date" type="date" value="${today()}" oninput="updatePayPreview(${id})"/>
+
+    <div class="grid2">
+      <div>
+        <label class="field-label">MESES PAGADOS</label>
+        <select class="field-select" id="p_months" onchange="updatePayPreview(${id})">
+          ${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${i===0?'selected':''}>${i+1} ${i===0?'mes':'meses'}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="field-label">PRECIO/MES ($)</label>
+        <input class="field-input" id="p_price" type="number" value="12" min="1" oninput="updatePayPreview(${id})"/>
+      </div>
+    </div>
+
+    <div class="renew-logic" id="payPreview">
+      <div class="renew-row">
+        <span class="renew-lbl">Vencimiento actual</span>
+        <span class="renew-val red" id="pp_old">${fmt(u.expiration)}</span>
+      </div>
+      <div class="renew-row">
+        <span class="renew-lbl">Fecha de confirmación</span>
+        <span class="renew-val yellow" id="pp_confirm">${fmt(today())}</span>
+      </div>
+      <div class="renew-row">
+        <span class="renew-lbl">Calcula desde</span>
+        <span class="renew-val" id="pp_base" style="font-size:.75rem"></span>
+      </div>
+      <div class="renew-row">
+        <span class="renew-lbl">Nuevo vencimiento</span>
+        <span class="renew-val green" id="pp_new"></span>
+      </div>
+      <div class="renew-row">
+        <span class="renew-lbl">Total cobrado</span>
+        <span class="renew-val green" id="pp_total"></span>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:4px 0 14px;padding-top:14px">
+      <div style="font-size:.68rem;font-weight:700;color:var(--subtle);letter-spacing:1px;margin-bottom:10px">DESCUENTO / PROMOCIÓN (opcional)</div>
+      ${u.promo ? `<div class="promo-banner" style="margin-bottom:10px"><div class="pb-icon">🏷️</div><div><div class="pb-label">PROMO: ${esc(u.promo.label)}</div><div class="pb-date">Se aplicará automáticamente</div></div></div>` : ''}
+      <div class="grid2">
+        <div>
+          <label class="field-label">TIPO</label>
+          <select class="field-select" id="p_disc_type" onchange="updatePayPreview(${id})">
+            <option value="none">Sin descuento</option>
+            <option value="pct"  ${u.promo&&u.promo.type==='pct' ?'selected':''}>Porcentaje (%)</option>
+            <option value="fixed"${u.promo&&u.promo.type==='fixed'?'selected':''}>Monto fijo ($)</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">VALOR</label>
+          <input class="field-input" id="p_disc_val" type="number" min="0"
+            placeholder="0" value="${u.promo?u.promo.value:''}" oninput="updatePayPreview(${id})"/>
+        </div>
+      </div>
+      <label class="field-label">ETIQUETA (aparece en el documento)</label>
+      <input class="field-input" id="p_disc_label" placeholder="Ej: Promo cliente fiel" value="${u.promo?esc(u.promo.label):''}"/>
+    </div>
+
+    <button class="btn-primary" style="background:linear-gradient(135deg,#4a1d96,#7c3aed)"
+      onclick="confirmPay(${id})">
+      💰 Confirmar pago y renovar
+    </button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  </div>`);
+
+  // trigger initial preview
+  updatePayPreview(id);
+}
+
+function updatePayPreview(id) {
+  const u        = users.find(x=>x.id===id);
+  const payDate  = $('p_date').value || today();
+  const months   = parseInt($('p_months').value) || 1;
+  const price    = parseFloat($('p_price').value) || 0;
+  const discType = $('p_disc_type') ? $('p_disc_type').value : 'none';
+  const discVal  = $('p_disc_val')  ? parseFloat($('p_disc_val').value)||0 : 0;
+
+  const expDate     = new Date(u.expiration + 'T12:00:00');
+  const confirmDate = new Date(payDate + 'T12:00:00');
+  const isLate      = confirmDate > expDate;
+  const baseDate    = isLate ? payDate : u.expiration;
+  const newExp      = addMonths(baseDate, months);
+
+  const subtotal = months * price;
+  const discount = discType==='pct' ? (subtotal * discVal/100) : discType==='fixed' ? discVal : 0;
+  const total    = Math.max(0, subtotal - discount);
+
+  if($('pp_old'))     $('pp_old').textContent     = fmt(u.expiration);
+  if($('pp_confirm')) $('pp_confirm').textContent  = fmt(payDate);
+  if($('pp_base'))    $('pp_base').textContent     = isLate
+    ? `Desde confirmación (venció hace ${Math.ceil((confirmDate-expDate)/86400000)}d)`
+    : `Desde vencimiento actual (al día ✓)`;
+  if($('pp_new'))     $('pp_new').textContent      = fmt(newExp);
+  if($('pp_total'))   $('pp_total').textContent    = discount > 0
+    ? `$${total.toFixed(2)} (desc. $${discount.toFixed(2)})`
+    : `$${total.toFixed(2)}`;
+
+  $('payPreview').dataset.newExp   = newExp;
+  $('payPreview').dataset.isLate   = isLate ? '1' : '0';
+}
+
+function confirmPay(id) {
+  const preview   = $('payPreview');
+  const newExp    = preview.dataset.newExp;
+  const payDate   = $('p_date').value || today();
+  const months    = parseInt($('p_months').value) || 1;
+  const price     = parseFloat($('p_price').value) || 0;
+  const discType  = $('p_disc_type') ? $('p_disc_type').value : 'none';
+  const discVal   = $('p_disc_val')  ? parseFloat($('p_disc_val').value)||0 : 0;
+
+  const idx = users.findIndex(x=>x.id===id);
+  if(idx===-1) return;
+
+  // Store promo if applied
+  let promo = null;
+  if(discType !== 'none' && discVal > 0) {
+    promo = { type: discType, value: discVal, label: $('p_disc_label').value.trim() || 'Descuento' };
+  }
+
+  users[idx] = { ...users[idx], expiration: newExp, lastPaid: payDate, ...(promo ? {promo} : {promo:null}) };
+  saveUsers(users);
+  closeModal();
+  renderAll();
+  toast(`✅ Renovado hasta ${fmt(newExp)}`);
+
+  // Ask to print proof
+  setTimeout(()=>{
+    if(window.confirm(`¿Imprimir comprobante para ${users.find(x=>x.id===id)?.username}?`)) {
+      openProof(id);
+    }
+  }, 400);
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXPORT / IMPORT — backup de datos
+// ═══════════════════════════════════════════════════════
+function exportData() {
+  const data = JSON.stringify(users, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = today().replace(/-/g,'');
+  a.href = url; a.download = `iptv-backup-${date}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('⬆️ Backup exportado');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if(!Array.isArray(imported)) throw new Error('Formato inválido');
+      if(window.confirm(`¿Importar ${imported.length} usuarios? Esto reemplazará los datos actuales.`)) {
+        users = imported;
+        saveUsers(users);
+        renderAll();
+        toast(`✅ ${imported.length} usuarios importados`);
+      }
+    } catch(err) { toast('❌ Archivo inválido'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  PROMO MODAL — descuento para un usuario
+// ═══════════════════════════════════════════════════════
+function openPromo(id) {
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  const hasPromo = !!u.promo;
+  openModal(sheetTop('PROMOCIÓN / DESCUENTO', u.username) + `
+    ${hasPromo ? `<div class="promo-banner" style="margin-bottom:14px">
+      <div class="pb-icon">🏷️</div>
+      <div><div class="pb-label">PROMO ACTUAL</div>
+      <div class="pb-date">${esc(u.promo.label)} · ${u.promo.type==='pct'?u.promo.value+'% off':'$'+parseFloat(u.promo.value).toFixed(2)+' desc.'}</div></div>
+    </div>` : ''}
+    <label class="field-label">NOMBRE DE LA PROMOCIÓN</label>
+    <input class="field-input" id="promo_label" placeholder="Ej: Promo verano, Cliente fiel…" value="${hasPromo?esc(u.promo.label):''}"/>
+    <label class="field-label">TIPO DE DESCUENTO</label>
+    <select class="field-select" id="promo_type" onchange="togglePromoVal()">
+      <option value="pct"  ${hasPromo&&u.promo.type==='pct' ?'selected':''}>Porcentaje (%)</option>
+      <option value="fixed"${hasPromo&&u.promo.type==='fixed'?'selected':''}>Monto fijo ($)</option>
+    </select>
+    <label class="field-label" id="promo_val_label">${hasPromo&&u.promo.type==='fixed'?'MONTO ($)':'PORCENTAJE (%)'}</label>
+    <input class="field-input" id="promo_val" type="number" min="0" max="100" placeholder="${hasPromo&&u.promo.type==='fixed'?'Ej: 3':'Ej: 10'}" value="${hasPromo?u.promo.value:''}"/>
+    <button class="btn-primary" style="background:linear-gradient(135deg,#92400e,#f59e0b);color:#111" onclick="savePromo(${id})">
+      🏷️ Guardar promoción
+    </button>
+    ${hasPromo?`<button class="btn-primary" style="background:linear-gradient(135deg,#450a0a,#dc2626);margin-bottom:9px" onclick="removePromo(${id})">🗑️ Quitar promoción</button>`:''}
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  </div>`);
+}
+
+function togglePromoVal() {
+  const t = $('promo_type').value;
+  if($('promo_val_label')) $('promo_val_label').textContent = t==='fixed'?'MONTO ($)':'PORCENTAJE (%)';
+}
+
+function savePromo(id) {
+  const label = $('promo_label').value.trim();
+  const type  = $('promo_type').value;
+  const value = parseFloat($('promo_val').value)||0;
+  if(!label || value<=0){ toast('⚠️ Completa la promoción'); return; }
+  const idx = users.findIndex(x=>x.id===id);
+  if(idx===-1) return;
+  users[idx].promo = { label, type, value };
+  saveUsers(users);
+  closeModal(); renderAll();
+  toast('🏷️ Promoción guardada');
+}
+
+function removePromo(id) {
+  const idx = users.findIndex(x=>x.id===id);
+  if(idx===-1) return;
+  delete users[idx].promo;
+  saveUsers(users);
+  closeModal(); renderAll();
+  toast('🗑️ Promoción eliminada');
+}
+
+// ═══════════════════════════════════════════════════════
+//  RECEIPT — lógica de fechas corregida
+//  FACTURA  → vencimiento actual del usuario
+//  PAGO     → vencimiento actual + meses pagados
+// ═══════════════════════════════════════════════════════
+function openReceipt(id) { openDoc(id,'receipt'); }
+function openProof(id)   { openDoc(id,'proof');   }
+
+function openDoc(id, mode) {
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  const isProof = mode==='proof';
+
+  // For proof: if user already has lastPaid recorded, use that renewal date
+  const proofNote = isProof && u.lastPaid
+    ? `<div class="paid-banner" style="margin-bottom:12px">
+        <div class="pb-icon">💰</div>
+        <div>
+          <div class="pb-label">PAGO CONFIRMADO EL ${fmt(u.lastPaid)}</div>
+          <div class="pb-date">Nuevo vencimiento: ${fmt(u.expiration)}</div>
+        </div>
+      </div>` : '';
+
+  openModal(sheetTop(
+    isProof ? 'COMPROBANTE DE PAGO' : 'GENERAR FACTURA',
+    u.username
+  ) + proofNote + `
+    <label class="field-label">NOMBRE DEL CLIENTE</label>
+    <input class="field-input" id="d_name" placeholder="Nombre completo" value="${esc(u.username)}"/>
+
+    <div class="grid2">
+      <div>
+        <label class="field-label">MESES</label>
+        <select class="field-select" id="d_months" onchange="updatePreview(${id},'${mode}')">
+          ${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${i===0?'selected':''}>${i+1} ${i===0?'mes':'meses'}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="field-label">PRECIO/MES ($)</label>
+        <input class="field-input" id="d_price" type="number" value="12" min="1" oninput="updatePreview(${id},'${mode}')"/>
+      </div>
+    </div>
+
+    <div class="preview" id="docPreview">
+      <div><div class="pl">${isProof?'Vence actualmente':'Vence actualmente'}</div>
+           <div class="pv red" id="prev_exp">${fmt(u.expiration)}</div></div>
+      <div><div class="pl">${isProof?'Nuevo vencimiento (en doc)':'Fecha en factura'}</div>
+           <div class="pv red" id="prev_new">${isProof ? fmt(addMonths(u.expiration,1)) : fmt(u.expiration)}</div></div>
+      <div><div class="pl">Período</div>
+           <div class="pv" id="prev_period">1 mes</div></div>
+      <div><div class="pl">Total</div>
+           <div class="pv big" id="prev_total">$12.00</div></div>
+    </div>
+
+    <button class="btn-primary" style="background:linear-gradient(135deg,#003087,#2563eb)"
+      onclick="printDoc(${id},'${mode}')">
+      🖨️ ${isProof?'Imprimir Comprobante':'Imprimir Factura'}
+    </button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  </div>`);
+}
+
+function updatePreview(id, mode) {
+  const u      = users.find(x=>x.id===id);
+  const months = parseInt($('d_months').value)||1;
+  const price  = parseFloat($('d_price').value)||0;
+  const total  = months * price;
+  const isProof = mode==='proof';
+
+  // FACTURA  → muestra vencimiento actual (no cambia con meses)
+  // COMPROBANTE → muestra vencimiento actual + meses pagados
+  const newExp = isProof ? addMonths(u.expiration, months) : u.expiration;
+
+  if($('prev_exp'))    $('prev_exp').textContent    = fmt(u.expiration);
+  if($('prev_new'))    $('prev_new').textContent    = fmt(newExp);
+  if($('prev_period')) $('prev_period').textContent = `${months} ${months===1?'mes':'meses'}`;
+  if($('prev_total'))  $('prev_total').textContent  = `$${total.toFixed(2)}`;
+}
+
+function printDoc(id, mode) {
+  const u       = users.find(x=>x.id===id);
+  const name    = $('d_name').value.trim() || u.username;
+  const months  = parseInt($('d_months').value)||1;
+  const price   = parseFloat($('d_price').value)||0;
+  const num     = invNum();
+  const isProof = mode==='proof';
+
+  // Discount: use promo stored on user if exists, else check manual fields
+  let discType  = 'none', discVal = 0, discLabel = '';
+  if(u.promo) {
+    discType  = u.promo.type;
+    discVal   = parseFloat(u.promo.value)||0;
+    discLabel = u.promo.label;
+  }
+
+  const subtotal = months * price;
+  const discount = discType==='pct' ? (subtotal * discVal/100) : discType==='fixed' ? discVal : 0;
+  const total    = Math.max(0, subtotal - discount);
+
+  // LÓGICA DE FECHAS:
+  // Factura     → muestra vencimiento actual del usuario
+  // Comprobante → muestra vencimiento actual (ya fue renovado por confirmPay)
+  const showExp = u.expiration;
+
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<title>${isProof?'Comprobante':'Factura'} ${num}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;padding:24px}
+.w{max-width:640px;margin:0 auto}
+/* header */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:3px solid #003087;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:52px;height:52px;background:linear-gradient(135deg,#003087,#1d4ed8);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.6rem}
+.bname{font-size:1.4rem;font-weight:900;color:#003087}
+.bsub{font-size:.68rem;color:#6b7280;letter-spacing:1px;margin-top:2px}
+.inv-title{text-align:right}
+.inv-title h2{font-size:1.9rem;font-weight:900;color:#003087}
+.inv-num{border:2px solid #003087;border-radius:6px;padding:3px 10px;font-size:.78rem;font-weight:700;color:#003087;display:inline-block;margin-top:5px}
+/* meta */
+.meta{font-size:.83rem;line-height:1.9;margin-bottom:14px}
+.meta .ml{color:#6b7280;margin-right:6px}
+.meta .mv{font-weight:600}
+.meta .red{color:#dc2626;font-weight:700}
+/* two col */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.card{border:1.5px solid #e5e7eb;border-radius:10px;overflow:hidden}
+.ch{background:#003087;color:#fff;padding:7px 12px;font-size:.68rem;font-weight:800;letter-spacing:1.5px}
+.cb{padding:12px 13px;font-size:.8rem;line-height:1.85}
+.cb .r{display:flex;gap:6px}
+.cb .l{color:#6b7280;min-width:95px;flex-shrink:0}
+.cb .v{font-weight:600}
+/* table */
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.82rem}
+thead tr{background:#003087;color:#fff}
+th{padding:9px 11px;text-align:left;font-size:.68rem;letter-spacing:1px}
+td{padding:10px 11px;border-bottom:1px solid #e5e7eb}
+/* totals */
+.totals{float:right;width:230px;border:1.5px solid #e5e7eb;border-radius:10px;overflow:hidden;margin-bottom:14px}
+.totals table{margin:0}
+.totals thead tr{background:#003087}
+.tr-last{background:#1d4ed8;color:#fff;font-weight:800}
+/* info box */
+.info{background:${isProof?'#f0fdf4':'#eff6ff'};border:1.5px solid ${isProof?'#86efac':'#93c5fd'};border-radius:10px;padding:13px;font-size:.8rem;clear:both;margin:8px 0 14px}
+.info-t{font-weight:800;color:${isProof?'#15803d':'#1d4ed8'};margin-bottom:5px;font-size:.85rem}
+/* payment */
+.pm h3{background:#003087;color:#fff;text-align:center;padding:7px;border-radius:8px 8px 0 0;font-size:.68rem;letter-spacing:1.5px}
+.pg{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;border:1.5px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;padding:11px}
+.pi{text-align:center;font-size:.68rem;font-weight:600;color:#374151}
+.pi .ic{width:42px;height:26px;border-radius:6px;margin:0 auto 3px;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:800;color:#fff}
+/* footer */
+.ftr{border-top:2px solid #003087;padding-top:11px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:.76rem}
+.wa{color:#16a34a;font-weight:700}
+.fb{background:#003087;color:#fff;text-align:center;border-radius:8px;padding:9px;margin-top:12px;font-size:.78rem}
+.cf::after{content:'';display:block;clear:both}
+@media print{body{padding:8px}.w{max-width:100%}}
+</style></head><body><div class="w">
+
+<div class="hdr">
+  <div class="brand">
+    <div class="logo">📺</div>
+    <div><div class="bname">IPTV SMARTER SV</div><div class="bsub">TELEVISIÓN VÍA STREAMING</div></div>
+  </div>
+  <div class="inv-title">
+    <h2>${isProof?'COMPROBANTE':'FACTURA'}</h2>
+    <div class="inv-num">N.° ${num}</div>
+  </div>
+</div>
+
+<div class="meta">
+  <div><span class="ml">📅 Fecha de emisión:</span><span class="mv">${fmt(today())}</span></div>
+  <div><span class="ml">📅 Fecha de vencimiento:</span><span class="red">${fmt(showExp)}</span></div>
+  <div><span class="ml">💳 Forma de pago:</span><span class="mv">${isProof?'PAGADO ✅':'Pago por adelantado'}</span></div>
+  ${isProof && u.lastPaid ? `<div><span class="ml">📆 Fecha de pago:</span><span class="mv" style="color:#16a34a;font-weight:700">${fmt(u.lastPaid)}</span></div>` : ''}
+</div>
+
+<div class="g2">
+  <div class="card">
+    <div class="ch">INFORMACIÓN DEL CLIENTE</div>
+    <div class="cb">
+      <div class="r"><span class="l">Cliente:</span><span class="v" style="font-size:.95rem">${name}</span></div>
+      <div class="r"><span class="l">Usuario:</span><span class="v">${u.username}</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch">DETALLE DEL SERVICIO</div>
+    <div class="cb">
+      <div class="r"><span class="l">Servicio:</span><span class="v">IPTV Smarter SV</span></div>
+      <div class="r"><span class="l">Incluye:</span><span class="v">Canales en vivo<br>Películas/Series (VOD)<br>HD / FHD / 4K</span></div>
+      <div class="r"><span class="l">Vencimiento:</span><span class="v" style="color:#dc2626">${fmt(showExp)}</span></div>
+    </div>
+  </div>
+</div>
+
+<table>
+  <thead><tr><th>DESCRIPCIÓN</th><th>CANT.</th><th>PRECIO/MES</th><th>TOTAL</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Servicio IPTV Smarter SV</strong><br><small>Plan ${months===1?'Mensual':months+' meses'}</small></td>
+      <td>${months}</td>
+      <td>$${price.toFixed(2)}</td>
+      <td>$${subtotal.toFixed(2)}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="cf">
+  <div class="totals">
+    <table>
+      <thead><tr><th colspan="2">RESUMEN</th></tr></thead>
+      <tbody>
+        <tr><td>Subtotal</td><td>$${subtotal.toFixed(2)}</td></tr>
+        <tr><td>${discount>0?(discLabel||'Descuento')+(discType==='pct'?' ('+discVal+'%)':' ($'+discVal+')'):'Descuento'}</td>
+            <td style="color:${discount>0?'#dc2626':'inherit'}">${discount>0?'-$'+discount.toFixed(2):'$0.00'}</td></tr>
+        <tr class="tr-last"><td>TOTAL A PAGAR</td><td>$${total.toFixed(2)} USD</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-t">${isProof?'✅ PAGO CONFIRMADO':'ℹ️ IMPORTANTE'}</div>
+  ${isProof
+    ? `Tu pago fue recibido. Tu servicio está activo hasta el <strong style="color:#dc2626">${fmt(showExp)}</strong>.`
+    : `Tu servicio vencerá el <strong style="color:#dc2626">${fmt(showExp)}</strong>. Realiza tu pago a tiempo para evitar interrupciones.`
+  }
+</div>
+
+${!isProof?`
+<div class="pm">
+  <h3>MÉTODOS DE PAGO</h3>
+  <div class="pg">
+    <div class="pi"><div class="ic" style="background:#1a56db">Chivo</div>Chivo Wallet</div>
+    <div class="pi"><div class="ic" style="background:#00bcd4">Tigo</div>Tigo Money</div>
+    <div class="pi"><div class="ic" style="background:#6c35de">Zelle</div>Zelle</div>
+    <div class="pi"><div class="ic" style="background:#003087">PP</div>PayPal</div>
+    <div class="pi"><div class="ic" style="background:#f3a600">BNB</div>Binance</div>
+    <div class="pi"><div class="ic" style="background:#16a34a">$</div>Efectivo</div>
+  </div>
+</div>`:''}
+
+<div class="ftr">
+  <div style="max-width:58%;color:#6b7280">Envía tu comprobante de pago por WhatsApp para confirmar y activar tu servicio.</div>
+  <div class="wa">📱 +503 61978309</div>
+</div>
+<div class="fb">¡Gracias por elegir IPTV Smarter SV! — Disfruta en cualquier momento y lugar 🎬</div>
+
+</div></body></html>`;
+
+  const w = window.open('','_blank');
+  if(!w){ toast('⚠️ Permite ventanas emergentes'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>w.print(),500);
+}
+
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(()=>{
+    $('splash').style.opacity='0';
+    setTimeout(()=>{
+      $('splash').style.display='none';
+      $('app').style.display='flex';
+      renderAll();
+      // Update backup status
+      const saved = localStorage.getItem('iptv_users');
+      if(saved) {
+        const arr = JSON.parse(saved);
+        $('backupStatus').textContent = `💾 ${arr.length} usuarios guardados · Exporta para hacer backup`;
+      }
+    },400);
+  },1300);
+});
+</script>
+</body>
+</html>
