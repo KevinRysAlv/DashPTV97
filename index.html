@@ -268,82 +268,39 @@
 
   /* ── ADAPTACIÓN DE ESCRITORIO (PC) BIEN ESTRUCTURADA ── */
   @media (min-width: 992px) {
-    /* Mantenemos el flujo vertical pero damos márgenes limpios */
-    body {
-      background: var(--bg);
-    }
-    
-    /* El contenedor principal con un ancho máximo elegante centrado tipo dashboard */
-    #app {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    /* Ajuste del Header */
-    .header {
-      border-radius: 0 0 12px 12px;
-      margin-bottom: 16px;
-      padding: 16px 24px;
-    }
-
-    /* Fila de estadísticas: 4 columnas reales en PC */
-    .stats {
-      grid-template-columns: repeat(4, 1fr) !important;
-      gap: 16px !important;
-      padding: 0 0 20px 0 !important;
-    }
-    
-    /* Pestañas de filtrado principales */
-    .tabs {
-      border-radius: 12px 12px 0 0;
-      border: 1px solid var(--border);
-      border-bottom: none;
-    }
-
-    /* ¡EL GRID DE USUARIOS PRO! Organizado en columnas perfectas */
-    .user-list {
-      display: grid !important;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important;
-      gap: 20px !important;
-      padding: 20px !important;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 12px 12px;
-      margin-bottom: 40px;
-    }
-    
-    /* Asegurar que las tarjetas ocupen el alto proporcional */
-    .ucard {
-      margin-bottom: 0 !important;
-      height: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: space-between !important;
-    }
-
-    /* Ocultar barra de navegación inferior de móvil en PC */
-    .bottom-nav {
-      position: sticky !important;
-      bottom: 20px !important;
-      max-width: 400px;
-      margin: 0 auto 20px;
-      border: 1px solid var(--border);
-      border-radius: 99px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      padding: 8px 16px !important;
-    }
-    
-    /* Barra de backup inferior */
-    .backup-bar {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-bottom: 16px;
-      padding: 12px;
-    }
+    body { background: var(--bg); }
+    #app { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+    .header { border-radius: 0 0 12px 12px; margin-bottom: 16px; padding: 16px 24px; }
+    .stats { grid-template-columns: repeat(4, 1fr) !important; gap: 16px !important; padding: 0 0 20px 0 !important; }
+    .tabs { border-radius: 12px 12px 0 0; border: 1px solid var(--border); border-bottom: none; }
+    .user-list { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important; gap: 20px !important; padding: 20px !important; background: var(--card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; margin-bottom: 40px; }
+    .ucard { margin-bottom: 0 !important; height: 100% !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; }
+    .bottom-nav { position: sticky !important; bottom: 20px !important; max-width: 400px; margin: 0 auto 20px; border: 1px solid var(--border); border-radius: 99px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); padding: 8px 16px !important; }
+    .backup-bar { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; padding: 12px; }
   }
 </style>
+
+<!-- Firebase Compat SDK v10 -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+<script>
+  // CREDENCIALES CONFIGURADAS DE TU BASE DE DATOS REAL
+  const firebaseConfig = {
+    apiKey: "AIzaSyBhID1VtAwGhQAxVp-JfmCUxqHyBSSp7Hc",
+    authDomain: "dashboardiptv-82d7e.firebaseapp.com",
+    databaseURL: "https://dashboardiptv-82d7e-default-rtdb.firebaseio.com",
+    projectId: "dashboardiptv-82d7e",
+    storageBucket: "dashboardiptv-82d7e.firebasestorage.app",
+    messagingSenderId: "780746609795",
+    appId: "1:780746609795:web:b3f865123a147be0b437b6",
+    measurementId: "G-W394XTN917"
+  };
+
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
 </head>
 <body>
 
@@ -453,6 +410,7 @@ const SEED = [
   {id:17684, username:'Leonay-21',    expiration:'2026-07-29',connections:3,online:true },
 ];
 
+
 function loadUsers() {
   try {
     const raw = localStorage.getItem('iptv_users');
@@ -460,10 +418,24 @@ function loadUsers() {
   } catch(e) { return [...SEED]; }
 }
 
-function saveUsers(arr) {
-  localStorage.setItem('iptv_users', JSON.stringify(arr));
+// Sincronización automática con Firebase
+if (typeof db !== 'undefined') {
+  db.ref('iptv_users').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      users = data;
+      localStorage.setItem('iptv_users', JSON.stringify(data));
+      if (typeof renderAll === 'function') renderAll();
+    }
+  });
 }
 
+function saveUsers(arr) {
+  localStorage.setItem('iptv_users', JSON.stringify(arr));
+  if (typeof db !== 'undefined') {
+    db.ref('iptv_users').set(arr);
+  }
+}
 let users = loadUsers();
 
 // ═══════════════════════════════════════════════════════
